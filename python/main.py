@@ -3,6 +3,7 @@ import logging
 import pathlib
 import json
 import hashlib
+import sqlite3
 from fastapi import FastAPI, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -19,6 +20,7 @@ app.add_middleware(
     allow_methods=["GET","POST","PUT","DELETE"],
     allow_headers=["*"],
 )
+db_path = pathlib.Path(__file__).parent.parent.resolve() / "db" / "mercari.sqlite3"
 
 @app.get("/")
 def root():
@@ -34,24 +36,45 @@ def add_item(name: str = Form(...), category: str = Form(...), image: UploadFile
     path = images / hash_name
     with open(path, "wb")as f:
           f.write(image_file)
-
-    receive_items = {'items':[{"name" : name, "category" : category, "image_filename" : hash_name}]}
-    with open("items.json", "w")as f:
-      json.dump(receive_items, f)
+    
+    con = sqlite3.connect(db_path)
+    cur = con.cursor()
+    cur.execute("INSERT OR IGNORE INTO category(name) values(?)", (category, ))
+    
+    cur.execute(f"select * from category where name = '{category}'")
+    category_id = cur.fetchone()[0]
+    receive_items = [(name, category_id, hash_name)]
+    cur.executemany("INSERT INTO items(name, category_id, image_filename) values(?, ?, ?)", receive_items)
+    con.commit()
+    con.close()
  
     return {"message": f"item received: {name}"}
 
 @app.get("/items")
 def read_items():
-	with open("items.json", "r")as f:
-		items = json.load(f)
-	return (items)
+    con = sqlite3.connect(db_path)
+    cur = con.cursor()
+    
+    sql = "select items.id, items.name, category.name, items.image_filename\
+        from items INNER JOIN category ON items.category_id = category.id"
+    cur.execute(sql)
+    items = cur.fetchall()
+    con.commit()
+    con.close()
+    return (items)
 
 @app.get("/items/{item_id}")
 def read_certain_items(item_id: int):
-	with open("items.json", "r")as f:
-		items = json.load(f)
-	return (items['items'][item_id - 1])
+    con = sqlite3.connect(db_path)
+    cur = con.cursor()
+    
+    sql = "select items.id, items.name, category.name, items.image_filename\
+        from items INNER JOIN category ON items.category_id = category.id"
+    cur.execute(sql)
+    items = cur.fetchall()
+    con.commit()
+    con.close()
+    return (items[item_id - 1])
 
 @app.get("/image/{image_filename}")
 async def get_image(image_filename):
@@ -66,3 +89,14 @@ async def get_image(image_filename):
         image = images / "default.jpg"
 
     return FileResponse(image)
+
+@app.get("/search")
+def search_items(keyword: str):
+    con = sqlite3.connect(db_path)
+    cur = con.cursor()
+
+    cur.execute(f"select * from items where name = '{keyword}'")
+    items = cur.fetchall()
+    con.commit()
+    con.close()
+    return (items)
