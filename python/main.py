@@ -22,6 +22,42 @@ app.add_middleware(
 )
 db_path = pathlib.Path(__file__).parent.parent.resolve() / "db" / "mercari.sqlite3"
 
+def save_image(image: UploadFile):
+    image_file = image.file.read()
+    hash_image = hashlib.sha256(image_file).hexdigest()
+    hash_name = hash_image + ".jpg"
+    path = images / hash_name
+    try:
+         with open(path, "wb")as f:
+              f.write(image_file)
+    except FileNotFoundError:
+         return ''
+    return hash_name
+
+def list_items():
+    con = sqlite3.connect(db_path)
+    cur = con.cursor()
+    
+    sql = "select items.id, items.name, category.name, items.image_filename\
+        from items INNER JOIN category ON items.category_id = category.id"
+    cur.execute(sql)
+    items = cur.fetchall()
+    con.commit()
+    con.close()
+    return items
+
+def save_item(name:str, category:str, image_filename:str):
+    con = sqlite3.connect(db_path)
+    cur = con.cursor()
+    cur.execute("INSERT OR IGNORE INTO category(name) values(?)", (category, ))
+    
+    cur.execute(f"select * from category where name = '{category}'")
+    category_id = cur.fetchone()[0]
+    receive_items = [(name, category_id, image_filename)]
+    cur.executemany("INSERT INTO items(name, category_id, image_filename) values(?, ?, ?)", receive_items)
+    con.commit()
+    con.close()
+
 @app.get("/")
 def root():
     return {"message": "Hello, world!"}
@@ -30,51 +66,27 @@ def root():
 def add_item(name: str = Form(...), category: str = Form(...), image: UploadFile = Form(...)):
     logger.info(f"Receive item: {name}, category: {category}, image:{image.filename}")
     
-    image_file = image.file.read()
-    hash_image = hashlib.sha256(image_file).hexdigest()
-    hash_name = hash_image + ".jpg"
-    path = images / hash_name
-    with open(path, "wb")as f:
-          f.write(image_file)
-    
-    con = sqlite3.connect(db_path)
-    cur = con.cursor()
-    cur.execute("INSERT OR IGNORE INTO category(name) values(?)", (category, ))
-    
-    cur.execute(f"select * from category where name = '{category}'")
-    category_id = cur.fetchone()[0]
-    receive_items = [(name, category_id, hash_name)]
-    cur.executemany("INSERT INTO items(name, category_id, image_filename) values(?, ?, ?)", receive_items)
-    con.commit()
-    con.close()
+    hash_name = save_image(image)
+    items = save_item(name, category, hash_name)
  
     return {"message": f"item received: {name}"}
 
 @app.get("/items")
-def read_items():
-    con = sqlite3.connect(db_path)
-    cur = con.cursor()
-    
-    sql = "select items.id, items.name, category.name, items.image_filename\
-        from items INNER JOIN category ON items.category_id = category.id"
-    cur.execute(sql)
-    items = cur.fetchall()
-    con.commit()
-    con.close()
-    return (items)
+def get_items():
+    items = list_items()
+    return items
 
 @app.get("/items/{item_id}")
-def read_certain_items(item_id: int):
-    con = sqlite3.connect(db_path)
-    cur = con.cursor()
-    
-    sql = "select items.id, items.name, category.name, items.image_filename\
-        from items INNER JOIN category ON items.category_id = category.id"
-    cur.execute(sql)
-    items = cur.fetchall()
-    con.commit()
-    con.close()
-    return (items[item_id - 1])
+def get_item(item_id: int):
+    try:
+        item = list_items()[item_id - 1]
+    except IndexError:
+        return {"message":"item not found"}
+    except ValueError:
+        return {"message":"ValueError"}
+    except FileNotFoundError:
+        return {"message":"FileNotFoundError"}
+    return (item)
 
 @app.get("/image/{image_filename}")
 async def get_image(image_filename):
@@ -99,4 +111,7 @@ def search_items(keyword: str):
     items = cur.fetchall()
     con.commit()
     con.close()
+
+    if not items:
+        return {"message":"item not found"}
     return (items)
