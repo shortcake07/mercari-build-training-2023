@@ -67,7 +67,7 @@ def add_item(name: str = Form(...), category: str = Form(...), image: UploadFile
     logger.info(f"Receive item: {name}, category: {category}, image:{image.filename}")
     
     hash_name = save_image(image)
-    items = save_item(name, category, hash_name)
+    save_item(name, category, hash_name)
  
     return {"message": f"item received: {name}"}
 
@@ -86,7 +86,7 @@ def get_item(item_id: int):
         return {"message":"ValueError"}
     except FileNotFoundError:
         return {"message":"FileNotFoundError"}
-    return (item)
+    return item
 
 @app.get("/image/{image_filename}")
 async def get_image(image_filename):
@@ -114,4 +114,4 @@ def search_items(keyword: str):
 
     if not items:
         return {"message":"item not found"}
-    return (items)
+    return items
