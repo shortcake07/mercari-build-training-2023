@@ -29,7 +29,7 @@ def save_image(image: UploadFile):
          with open(path, "wb")as f:
               f.write(image_file)
     except FileNotFoundError:
-         return ;
+         return ''
     return hash_name
 
 def list_items():
