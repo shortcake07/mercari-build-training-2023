@@ -12,8 +12,7 @@ RUN mkdir -p /app/db &&\
 	mkdir -p /app/images
 
 COPY db db
-COPY main.py .
-COPY images images
+COPY python python
 
 RUN addgroup -S mercari && adduser -S trainee -G mercari
 RUN chown -R trainee:mercari /app/db \
