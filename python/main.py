@@ -20,7 +20,7 @@ app.add_middleware(
     allow_methods=["GET","POST","PUT","DELETE"],
     allow_headers=["*"],
 )
-db_path = pathlib.Path(__file__).parent.parent.resolve() / "db" / "mercari.sqlite3"
+DB_PATH = pathlib.Path(__file__).parent.resolve() / "db" / "mercari.sqlite3"
 
 def save_image(image: UploadFile):
     image_file = image.file.read()
@@ -35,7 +35,7 @@ def save_image(image: UploadFile):
     return hash_name
 
 def list_items():
-    con = sqlite3.connect(db_path)
+    con = sqlite3.connect(DB_PATH)
     cur = con.cursor()
 
     sql = "select items.id, items.name, category.name, items.image_filename\
@@ -47,7 +47,7 @@ def list_items():
     return items
 
 def save_item(name:str, category:str, image_filename:str):
-    con = sqlite3.connect(db_path)
+    con = sqlite3.connect(DB_PATH)
     cur = con.cursor()
     cur.execute("INSERT OR IGNORE INTO category(name) values(?)", (category, ))
 
@@ -57,6 +57,17 @@ def save_item(name:str, category:str, image_filename:str):
     cur.executemany("INSERT INTO items(name, category_id, image_filename) values(?, ?, ?)", receive_items)
     con.commit()
     con.close()
+
+def search_items(keyword:str):
+    con = sqlite3.connect(DB_PATH)
+    cur = con.cursor()
+    
+    cur.execute(f"select * from items where name = '{keyword}'")
+    items = cur.fetchall()
+    con.commit()
+    con.close()
+    
+    return items
 
 @app.get("/")
 def root():
@@ -103,15 +114,9 @@ async def get_image(image_filename):
     return FileResponse(image)
 
 @app.get("/search")
-def search_items(keyword: str):
-    con = sqlite3.connect(db_path)
-    cur = con.cursor()
-
-    cur.execute(f"select * from items where name = '{keyword}'")
-    items = cur.fetchall()
-    con.commit()
-    con.close()
-
-    if not items:
+def get_items(keyword: str):
+    items = search_items(keyword)
+    if items is None:
         return {"message":"item not found"}
+
     return items
