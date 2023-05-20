@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 logger = logging.getLogger("uvicorn")
-logger.level = logging.DEBUG
+logger.level = logging.INFO
 images = pathlib.Path(__file__).parent.resolve() / "images"
 origins = [ os.environ.get('FRONT_URL', 'http://localhost:3000') ]
 app.add_middleware(
@@ -90,7 +90,7 @@ def read_items():
 @app.get("/items/{item_id}")
 def get_item(item_id: int):
     try:
-        item = list_items()[item_id - 1]
+      item = list_items()[item_id - 1]
     except IndexError:
         return {"message":"item not found"}
     except ValueError:
