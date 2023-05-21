@@ -3,41 +3,66 @@
 }
 
 .Title {
-  background-color: #222427;
+  background-color: #419CC0;
   min-height: 8vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: left;
-  font-size: calc(10px + 1vmin);
+  font-size: calc(15px + 1vmin);
   color: white;
 }
 
 .Listing {
-  background-color: #222427;
+  background-color: #419CC0;
   min-height: 8vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: left;
   font-size: calc(10px + 1vmin);
-  color: white;
+  color: #BF0000;
 }
 
 .ItemList {
-  background-color: #222427;
+  background-color: white;
   min-height: 8vh;
   display: flex;
+  flex-wrap: wrap;
   flex-direction: column;
   align-items: center;
-  justify-content: left;
+  justify-content: center;
   font-size: calc(10px + 1vmin);
-  color: white;
+  color: black;
+}
+
+.wrapper{
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 10px;
+	grid-auto-rows: (100px, auto);
+}
+
+.item{
+	height: 300px;
+	width: 300px;
+	margin: 2em auto;
+	padding:2em;/*内側余白*/
+	border-radius: 30px 60px/60px 30px;
+	border: solid 8px #ccc7be;
+}
+
+.box55 {
+	margin: 2em auto;
+	padding:2em;/*内側余白*/
+	border-radius: 30px 60px/60px 30px;
+	border: solid 8px #ccc7be;
 }
 
 .App-link {
   color: #61dafb;
 }
+
 
 @keyframes App-logo-spin {
   from {
@@ -47,3 +72,4 @@
     transform: rotate(360deg);
   }
 }
+
