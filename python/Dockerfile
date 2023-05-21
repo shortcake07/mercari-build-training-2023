@@ -9,17 +9,15 @@ RUN apk update &&\
 	apk add --no-cache sqlite
 
 RUN mkdir -p /app/db &&\
-	mkdir -p /app/images
+	mkdir -p /app/python
 
 COPY db db
-COPY items.json .
-COPY main.py .
-COPY images images
+COPY python python
 
 RUN addgroup -S mercari && adduser -S trainee -G mercari
 RUN chown -R trainee:mercari /app/db &&\
-	chown -R trainee:mercari /app/images &&\
-	chmod 777 /app/items.json
+	chown -R trainee:mercari /app/python/images &&\
+	chmod 777 /app/python/items.json
 
 USER trainee
 
