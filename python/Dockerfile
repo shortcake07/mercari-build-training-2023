@@ -15,9 +15,8 @@ COPY db db
 COPY python python
 
 RUN addgroup -S mercari && adduser -S trainee -G mercari
-RUN chown -R trainee:mercari /app/db &&\
-	chown -R trainee:mercari /app/images
-
+RUN chown -R trainee:mercari /app/db \
+	&& chown -R trainee:mercari /app/images
 USER trainee
 
 CMD [ "uvicorn", "main:app" , "--host", "0.0.0.0", "--port", "9000"]
