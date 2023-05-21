@@ -16,8 +16,8 @@ COPY python python
 
 RUN addgroup -S mercari && adduser -S trainee -G mercari
 RUN chown -R trainee:mercari /app/db &&\
-	chown -R trainee:mercari /app/images &&\
-	chmod 777 /app/items.json
+	chown -R trainee:mercari /app/images# &&\
+	#chmod 777 /app/items.json
 
 USER trainee
 
