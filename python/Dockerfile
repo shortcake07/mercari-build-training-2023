@@ -2,7 +2,7 @@ FROM python:3.10.11-alpine
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY python/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 RUN apk update &&\
 	apk add --no-cache curl &&\
