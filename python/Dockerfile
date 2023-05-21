@@ -2,7 +2,7 @@ FROM python:3.10.11-alpine
 
 WORKDIR /app
 
-COPY python/requirements.txt .
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 RUN apk update &&\
 	apk add --no-cache curl &&\
@@ -12,11 +12,14 @@ RUN mkdir -p /app/db &&\
 	mkdir -p /app/images
 
 COPY db db
-COPY python python
+COPY items.json .
+COPY main.py .
+COPY images images
 
 RUN addgroup -S mercari && adduser -S trainee -G mercari
-RUN chown -R trainee:mercari /app/db \
-	&& chown -R trainee:mercari /app/images
+RUN chown -R trainee:mercari /app/db &&\
+	chown -R trainee:mercari /app/images &&\
+	chmod 777 /app/items.json
 
 USER trainee
 

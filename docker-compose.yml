@@ -1,0 +1,20 @@
+version: "3.9"
+services:
+  frontend:
+    build:
+      context: ./typescript/simple-mercari-web
+    ports:
+      - "3000:3000"
+    environment:
+      REACT_APP_API_URL: http://localhost:9000
+  backend:
+    build:
+      context: ./python
+    ports:
+      - "9000:9000"
+    volumes:
+      - .:/code
+      - ./python/items.json:/app/items.json
+    environment: 
+      FRONT_URL: http://localhost:3000
+
