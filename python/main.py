@@ -79,7 +79,7 @@ def add_item(name: str = Form(...), category: str = Form(...), image: UploadFile
     
     hash_name = save_image(image)
     save_item(name, category, hash_name)
- 
+
     return {"message": f"item received: {name}"}
 
 @app.get("/items")
@@ -90,7 +90,7 @@ def get_items():
 @app.get("/items/{item_id}")
 def get_item(item_id: int):
     try:
-        item = list_items()[item_id - 1]
+      item = list_items()[item_id - 1]
     except IndexError:
         return {"message":"item not found"}
     except ValueError:
@@ -120,3 +120,4 @@ def get_items(keyword: str):
         return {"message":"item not found"}
 
     return items
+ 
